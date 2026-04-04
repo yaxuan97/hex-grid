@@ -264,21 +264,6 @@ const terrain = grid_get(mapId, 0, 0);
 console.log(terrain); // { terrain: 'grass', height: 1 }
 ```
 
-### 路径寻找
-
-```javascript
-// 计算从起点到终点的路径
-function getNeighbors(q, r) {
-    const neighbors = [];
-    for (let dir = 0; dir < 6; dir++) {
-        const neighbor = neighbor(q, r, dir);
-        // 解析坐标...
-        neighbors.push(neighbor);
-    }
-    return neighbors;
-}
-```
-
 ## 构建和测试
 
 ### 构建WASM
@@ -299,7 +284,7 @@ cargo test
 python -m http.server 8000
 ```
 
-然后访问 `http://localhost:8000/index.html` 查看测试页面。
+然后访问 `http://localhost:8000/test_zhCN.html` 查看测试页面。
 
 ## 性能特点
 

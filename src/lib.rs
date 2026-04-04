@@ -49,6 +49,23 @@ impl AxialCoord {
         (x, y)
     }
 
+    /// 计算两个六边形格子的网格距离（步数）
+    /// 这是沿着网格路径的最短步数
+    pub fn hex_distance(&self, other: &AxialCoord) -> i32 {
+        let dq = (self.q - other.q).abs();
+        let dr = (self.r - other.r).abs();
+        let ds = (-self.q - self.r + other.q + other.r).abs();
+        dq.max(dr).max(ds)
+    }
+
+    /// 计算两个六边形格子中心点的直线距离
+    /// size: 六边形的大小（边长）
+    pub fn euclidean_distance(&self, other: &AxialCoord, size: f64) -> f64 {
+        let (x1, y1) = self.to_pixel(size);
+        let (x2, y2) = other.to_pixel(size);
+        ((x2 - x1).powi(2) + (y2 - y1).powi(2)).sqrt()
+    }
+
     /// 辅助函数：舍入立方坐标到轴向坐标
     fn axial_round(frac_q: f64, frac_r: f64) -> (i32, i32) {
         let frac_s = -frac_q - frac_r;
@@ -301,6 +318,20 @@ pub fn to_pixel(q: i32, r: i32, size: f64) -> String {
     format!("({:.3}, {:.3})", x, y)
 }
 
+#[wasm_bindgen]
+pub fn hex_distance(q1: i32, r1: i32, q2: i32, r2: i32) -> i32 {
+    let coord1 = AxialCoord::new(q1, r1);
+    let coord2 = AxialCoord::new(q2, r2);
+    coord1.hex_distance(&coord2)
+}
+
+#[wasm_bindgen]
+pub fn euclidean_distance(q1: i32, r1: i32, q2: i32, r2: i32, size: f64) -> f64 {
+    let coord1 = AxialCoord::new(q1, r1);
+    let coord2 = AxialCoord::new(q2, r2);
+    coord1.euclidean_distance(&coord2, size)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -386,6 +417,38 @@ mod tests {
         let (x, y) = coord.to_pixel(size);
         assert!((x - 0.0).abs() < 1e-6);
         assert!((y - 3.0_f64.sqrt()).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_hex_distance() {
+        let coord1 = AxialCoord::new(0, 0);
+        let coord2 = AxialCoord::new(0, 0);
+        assert_eq!(coord1.hex_distance(&coord2), 0);
+
+        let coord1 = AxialCoord::new(0, 0);
+        let coord2 = AxialCoord::new(1, 0);
+        assert_eq!(coord1.hex_distance(&coord2), 1);
+
+        let coord1 = AxialCoord::new(0, 0);
+        let coord2 = AxialCoord::new(1, 1);
+        assert_eq!(coord1.hex_distance(&coord2), 2);
+
+        let coord1 = AxialCoord::new(0, 0);
+        let coord2 = AxialCoord::new(1, -1);
+        assert_eq!(coord1.hex_distance(&coord2), 1);
+    }
+
+    #[test]
+    fn test_euclidean_distance() {
+        let size = 1.0;
+        let coord1 = AxialCoord::new(0, 0);
+        let coord2 = AxialCoord::new(0, 0);
+        assert!((coord1.euclidean_distance(&coord2, size) - 0.0).abs() < 1e-6);
+
+        let coord1 = AxialCoord::new(0, 0);
+        let coord2 = AxialCoord::new(1, 0);
+        let expected_distance = (3.0_f64).sqrt(); // sqrt(1.5^2 + (√3/2)^2) = sqrt(2.25 + 0.75) = sqrt(3)
+        assert!((coord1.euclidean_distance(&coord2, size) - expected_distance).abs() < 1e-6);
     }
 
     #[test]

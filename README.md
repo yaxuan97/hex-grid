@@ -264,21 +264,6 @@ const terrain = grid_get(mapId, 0, 0);
 console.log(terrain); // { terrain: 'grass', height: 1 }
 ```
 
-### Pathfinding
-
-```javascript
-// Calculate path from start to end
-function getNeighbors(q, r) {
-    const neighbors = [];
-    for (let dir = 0; dir < 6; dir++) {
-        const neighbor = neighbor(q, r, dir);
-        // Parse coordinates...
-        neighbors.push(neighbor);
-    }
-    return neighbors;
-}
-```
-
 ## Building and Testing
 
 ### Build WASM
@@ -299,7 +284,7 @@ cargo test
 python -m http.server 8000
 ```
 
-Then visit `http://localhost:8000/index.html` to view the test page.
+Then visit `http://localhost:8000/test.html` to view the test page.
 
 ## Performance Features
 
