@@ -295,7 +295,7 @@ Then visit `http://localhost:8000/test.html` to view the test page.
 
 ## License
 
-MIT License
+[MIT License](LICENSE)
 
 ## Contributing
 

@@ -295,7 +295,7 @@ python -m http.server 8000
 
 ## 许可证
 
-MIT License
+[MIT License](LICENSE)
 
 ## 贡献
 

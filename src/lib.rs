@@ -1,3 +1,8 @@
+// lib.rs - 六边形网格库，提供轴向坐标系统和基本操作
+// 这个库实现了一个简单的六边形网格数据结构，支持插入、查询、删除等基本操作
+// 以及坐标转换和距离计算功能。通过 wasm_bindgen 导出函数，
+// copyright (c) 2026 by yaxuan97, licensed under MIT
+
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;

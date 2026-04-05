@@ -2,9 +2,15 @@
 edition = "2024"
 name = "hex-grid"
 version = "0.1.0"
+license = "MIT"
+description = "A hexagonal grid library for Rust and WebAssembly"
+repository = "https://github.com/yaxuajn97/hex-grid"
+readme = "README.md"
+keywords = ["rust", "hexagonal", "grid", "wasm", "webassembly"]
+categories = ["data-structures", "geometry", "math"]
 [lib]
 crate-type = ["cdylib", "rlib"]
 [dependencies]
 wasm-bindgen = "0.2"
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = false
+wasm-opt = true
