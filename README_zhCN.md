@@ -22,7 +22,7 @@
 
 ```toml
 [dependencies]
-hex-grid = "0.1.0"
+hex-grid = "0.1.1"
 ```
 
 ### WebAssembly使用
@@ -105,6 +105,19 @@ console.log(pixelCoord); // "(1.50, 0.87)"
 
 const axialCoord = from_pixel(1.5, 0.0, 1.0);
 console.log(axialCoord); // "(1, 0)"
+
+// 将网格序列化为二进制数据
+const binaryData = grid_serialize(gridId);
+console.log(binaryData); // 包含序列化数据的Uint8Array
+
+// 将二进制数据反序列化到新网格
+const newGridId = create_grid();
+const result = grid_deserialize(newGridId, binaryData);
+console.log(result); // "网格 X 已从二进制数据恢复"
+
+// 验证数据已恢复
+const restoredValue = grid_get(newGridId, 0, 0);
+console.log(restoredValue); // { terrain: 'grass', height: 1 }
 ```
 
 ## API文档
@@ -208,6 +221,12 @@ console.log(axialCoord); // "(1, 0)"
 - `grid_clear(id: u32) -> String`
   - 清空指定网格
 
+- `grid_serialize(id: u32) -> Vec<u8>`
+  - 将指定网格序列化为二进制数据以便保存
+
+- `grid_deserialize(id: u32, data: &[u8]) -> String`
+  - 将二进制数据反序列化到指定网格，恢复保存的数据
+
 #### 坐标工具
 
 - `neighbor(q: i32, r: i32, direction: u8) -> String`
@@ -303,4 +322,5 @@ python -m http.server 8000
 
 ## 版本历史
 
+- v0.1.1: 添加序列化和反序列化功能，支持将网格数据保存和加载为二进制格式
 - v0.1.0: 初始版本，支持基本网格操作和坐标转换

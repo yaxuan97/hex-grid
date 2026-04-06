@@ -160,6 +160,21 @@
         <div class="result" id="distanceResult"></div>
     </div>
 
+    <div class="test-section">
+        <h2>Test Serialization</h2>
+        <div class="input-group">
+            <label for="serializeGridId">Grid ID to serialize:</label>
+            <input type="number" id="serializeGridId" value="1" min="1">
+            <button onclick="serializeGrid()">Serialize Grid</button>
+        </div>
+        <div class="input-group">
+            <label for="deserializeGridId">Grid ID to deserialize into:</label>
+            <input type="number" id="deserializeGridId" value="2" min="1">
+            <button onclick="deserializeGrid()">Deserialize Grid</button>
+        </div>
+        <div class="result" id="serializeResult"></div>
+    </div>
+
     <script type="module">
         import init, {
             neighbor,
@@ -176,7 +191,9 @@
             grid_contains,
             grid_len,
             grid_keys,
-            list_grids
+            list_grids,
+            grid_serialize,
+            grid_deserialize
         } from './pkg/hex_grid.js';
 
         async function run() {
@@ -299,6 +316,29 @@
             const id = parseInt(document.getElementById('gridId').value);
             const result = grid_clear(id);
             document.getElementById('gridResult').textContent = result;
+        };
+
+        window.serializeGrid = function() {
+            const id = parseInt(document.getElementById('serializeGridId').value);
+            const binaryData = grid_serialize(id);
+            if (binaryData.length === 0) {
+                document.getElementById('serializeResult').textContent = `Grid ${id} does not exist or is empty`;
+                return;
+            }
+            // Store the binary data for deserialization
+            window.serializedData = binaryData;
+            document.getElementById('serializeResult').textContent = 
+                `Grid ${id} serialized to ${binaryData.length} bytes of binary data, stored in variable window.serializedData for deserialization.`;
+        };
+
+        window.deserializeGrid = function() {
+            if (!window.serializedData) {
+                document.getElementById('serializeResult').textContent = 'No serialized data available. Please serialize a grid first.';
+                return;
+            }
+            const id = parseInt(document.getElementById('deserializeGridId').value);
+            const result = grid_deserialize(id, window.serializedData);
+            document.getElementById('serializeResult').textContent = result;
         };
 
         window.testHexDistance = function() {

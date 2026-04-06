@@ -105,6 +105,19 @@ console.log(pixelCoord); // "(1.50, 0.87)"
 
 const axialCoord = from_pixel(1.5, 0.0, 1.0);
 console.log(axialCoord); // "(1, 0)"
+
+// Serialize grid to binary data
+const binaryData = grid_serialize(gridId);
+console.log(binaryData); // Uint8Array containing serialized data
+
+// Deserialize binary data into a new grid
+const newGridId = create_grid();
+const result = grid_deserialize(newGridId, binaryData);
+console.log(result); // "网格 X 已从二进制数据恢复"
+
+// Verify data is restored
+const restoredValue = grid_get(newGridId, 0, 0);
+console.log(restoredValue); // { terrain: 'grass', height: 1 }
 ```
 
 ## API Documentation
@@ -208,6 +221,12 @@ Hexagonal grid data structure.
 - `grid_clear(id: u32) -> String`
   - Clear specified grid
 
+- `grid_serialize(id: u32) -> Vec<u8>`
+  - Serialize the specified grid to binary data for saving
+
+- `grid_deserialize(id: u32, data: &[u8]) -> String`
+  - Deserialize binary data into the specified grid, restoring saved data
+
 #### Coordinate Tools
 
 - `neighbor(q: i32, r: i32, direction: u8) -> String`
@@ -303,4 +322,5 @@ Issues and Pull Requests are welcome!
 
 ## Version History
 
+- v0.1.1: Added serialization and deserialization functionality for saving and loading grid data as binary
 - v0.1.0: Initial version, supports basic grid operations and coordinate conversion

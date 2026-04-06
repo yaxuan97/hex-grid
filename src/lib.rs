@@ -8,9 +8,12 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use std::cell::RefCell;
 use std::thread_local;
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use serde_wasm_bindgen;
+use js_sys::JSON;
 
 /// 轴向坐标结构体，用于六边形网格
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AxialCoord {
     pub q: i32,
     pub r: i32,
@@ -93,7 +96,7 @@ impl AxialCoord {
 }
 
 /// 六边形网格数据结构
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct HexGrid<T> {
     data: HashMap<AxialCoord, T>,
 }
@@ -159,6 +162,50 @@ impl<T> HexGrid<T> {
     /// 检查网格是否为空
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
+    }
+
+    /// 将网格序列化为二进制数据
+    pub fn serialize(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>>
+    where
+        T: Serialize,
+    {
+        bincode::serialize(self).map_err(Into::into)
+    }
+
+    /// 从二进制数据反序列化网格
+    pub fn deserialize(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>
+    where
+        T: DeserializeOwned,
+    {
+        bincode::deserialize(data).map_err(Into::into)
+    }
+}
+
+impl HexGrid<JsValue> {
+    /// 将网格序列化为二进制数据（针对 JsValue）
+    pub fn serialize_js(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let serialized_data: Vec<(AxialCoord, String)> = self.data.iter()
+            .map(|(k, v)| -> Result<_, Box<dyn std::error::Error>> {
+                let json_str = JSON::stringify(v)
+                    .map(|js_str| js_str.as_string().unwrap_or("null".to_string()))
+                    .unwrap_or("null".to_string());
+                Ok((*k, json_str))
+            })
+            .collect::<Result<_, _>>()?;
+        bincode::serialize(&serialized_data).map_err(Into::into)
+    }
+
+    /// 从二进制数据反序列化网格（针对 JsValue）
+    pub fn deserialize_js(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
+        let serialized_data: Vec<(AxialCoord, String)> = bincode::deserialize(data)?;
+        let data = serialized_data.into_iter()
+            .map(|(k, json_str)| -> Result<_, Box<dyn std::error::Error>> {
+                let js_value = JSON::parse(&json_str)
+                    .map_err(|_| "JSON parse error".to_string())?;
+                Ok((k, js_value))
+            })
+            .collect::<Result<_, _>>()?;
+        Ok(HexGrid { data })
     }
 }
 
@@ -335,6 +382,32 @@ pub fn euclidean_distance(q1: i32, r1: i32, q2: i32, r2: i32, size: f64) -> f64 
     let coord1 = AxialCoord::new(q1, r1);
     let coord2 = AxialCoord::new(q2, r2);
     coord1.euclidean_distance(&coord2, size)
+}
+
+#[wasm_bindgen]
+pub fn grid_serialize(id: u32) -> Vec<u8> {
+    GRIDS.with(|grids| {
+        let grids = grids.borrow();
+        if let Some(grid) = grids.get(&id) {
+            grid.serialize_js().unwrap_or_default()
+        } else {
+            Vec::new()
+        }
+    })
+}
+
+#[wasm_bindgen]
+pub fn grid_deserialize(id: u32, data: &[u8]) -> String {
+    GRIDS.with(|grids| {
+        let mut grids = grids.borrow_mut();
+        match HexGrid::<JsValue>::deserialize_js(data) {
+            Ok(new_grid) => {
+                grids.insert(id, new_grid);
+                format!("网格 {} 已从二进制数据恢复", id)
+            }
+            Err(e) => format!("反序列化失败: {}", e),
+        }
+    })
 }
 
 #[cfg(test)]
