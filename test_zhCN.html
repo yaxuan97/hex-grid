@@ -160,6 +160,21 @@
         <div class="result" id="distanceResult"></div>
     </div>
 
+    <div class="test-section">
+        <h2>测试序列化</h2>
+        <div class="input-group">
+            <label for="serializeGridId">要序列化的网格ID:</label>
+            <input type="number" id="serializeGridId" value="1" min="1">
+            <button onclick="serializeGrid()">序列化网格</button>
+        </div>
+        <div class="input-group">
+            <label for="deserializeGridId">要反序列化到的网格ID:</label>
+            <input type="number" id="deserializeGridId" value="2" min="1">
+            <button onclick="deserializeGrid()">反序列化网格</button>
+        </div>
+        <div class="result" id="serializeResult"></div>
+    </div>
+
     <script type="module">
         import init, {
             neighbor,
@@ -176,7 +191,9 @@
             grid_contains,
             grid_len,
             grid_keys,
-            list_grids
+            list_grids,
+            grid_serialize,
+            grid_deserialize
         } from './pkg/hex_grid.js';
 
         async function run() {
@@ -299,6 +316,29 @@
             const id = parseInt(document.getElementById('gridId').value);
             const result = grid_clear(id);
             document.getElementById('gridResult').textContent = result;
+        };
+
+        window.serializeGrid = function() {
+            const id = parseInt(document.getElementById('serializeGridId').value);
+            const binaryData = grid_serialize(id);
+            if (binaryData.length === 0) {
+                document.getElementById('serializeResult').textContent = `网格 ${id} 不存在或为空`;
+                return;
+            }
+            // 存储二进制数据用于反序列化
+            window.serializedData = binaryData;
+            document.getElementById('serializeResult').textContent = 
+                `网格 ${id} 已序列化为 ${binaryData.length} 字节的二进制数据，变量名为 window.serializedData 可用于反序列化。`;
+        };
+
+        window.deserializeGrid = function() {
+            if (!window.serializedData) {
+                document.getElementById('serializeResult').textContent = '没有可用的序列化数据。请先序列化一个网格。';
+                return;
+            }
+            const id = parseInt(document.getElementById('deserializeGridId').value);
+            const result = grid_deserialize(id, window.serializedData);
+            document.getElementById('serializeResult').textContent = result;
         };
 
         window.testHexDistance = function() {
